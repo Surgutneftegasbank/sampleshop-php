@@ -1,5 +1,7 @@
 <?php require 'vendor/autoload.php';
 
+//require "configuration.php";
+
 $app = new \Slim\Slim(array(
     'mode' => 'development'
 ));
@@ -44,10 +46,67 @@ $app->get('/', function () use ($app) {
     );
     // Render view
     $app->render('index.html.twig', $parameters);
-});
+})->name('index');
 
-$app->get('/hello/:name', function ($name) {
-    echo "Hello, $name";
-});
+$app->get('/checkout', function () use ($app) {
+
+    //$Config = new Configuration('config.txt');
+	
+    $merchant = "1071";// $Config->get('settings.merchant');
+    //alias
+	$terminal = "1071-jazzshop";//$Config->get('settings.terminal');
+    $password = "qwe123!@#";//$Config->get('settings.password');
+    $amount = 1000;
+    
+    $trackid = 2;//time();
+    
+    $action = '1';
+    
+    if ( isset($_REQUEST['amount']) ) $amount = $_REQUEST['amount'];
+    if ( isset($_REQUEST['action']) ) $action = $_REQUEST['action'];
+        
+    // Hash signature
+    $hash_pass = sha1( $password );
+    $solt = $merchant . $amount . $trackid . $hash_pass;         
+    $hash = sha1($solt);
+    
+    // Http POST request
+    $url = 'https://ecm.sngb.ru:443/ECommerce/PaymentInitServlet';      
+    
+    $params = array(
+        'merchant' => $merchant ,
+        'terminal' => $terminal ,
+        'action' => $action ,
+        'amt' => $amount ,
+        'trackid' => $trackid ,
+        'hash_str' => $hash ,
+        'udf1' => 'Test PaymentInit' 
+        );
+    
+    // Param string
+    $postdata = "";
+    foreach ( $params as $key => $value ) $postdata .= "&".rawurlencode($key)."=".rawurlencode($value);
+
+    // Do POST
+    $ch = curl_init();
+    curl_setopt ($ch, CURLOPT_URL, $url );
+    curl_setopt ($ch, CURLOPT_POST, 1 );
+    curl_setopt ($ch, CURLOPT_POSTFIELDS, $postdata );
+    curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+    curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
+    $result = curl_exec ($ch);
+    $curl_errno = curl_errno($ch);
+    $curl_error = curl_error($ch);
+    if ($curl_errno > 0) {
+        echo "cURL Error ($curl_errno): $curl_error";
+        //print_r(curl_getinfo($ch));
+    } else {
+        echo "Data received ";
+    }
+    curl_close($ch);
+     
+    $app->redirect($result);
+    //echo 'result = ' . $result;
+})->name('checkout');
 
 $app->run();
