@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html class="no-js">
+	<head>
+		<!-- Metas -->
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width">
+		<title>{{ title ? title : 'Simple Slim example' }}</title>
+		<!-- Styles -->
+		<link rel="stylesheet" href="/css/style.css">
+		{% block head_styles %}{% endblock %}
+		<!-- Scripts -->
+		<script src="/js/vendor/custom.modernizr.js"></script>
+		{% block head_scripts %}{% endblock %}
+	</head>
+	<body>
+		{% block content %}{% endblock %}
+		<!--
+		<script>
+			document.write('<script src=' +
+			('__proto__' in {} ? '/js/vendor/zepto' : '/js/vendor/jquery.min') +
+			'.js><\/script>')
+		</script>
+		-->
+		<script src="/js/vendor/jquery.min.js"></script>
+		<script src="/js/vendor/foundation.min.js"></script>
+		<script src="/js/main.js"></script>
+		{% block body_scripts %}{% endblock %}
+	</body>
+</html>

@@ -1,0 +1,9 @@
+{% extends 'layout.html.twig' %}
+
+{% block content %}
+  Товар "Игрушки для детей"
+  Цена 1000р.
+  <a href="{{ app.urlFor('checkout') }}">
+    <h3>Купить "игрушки для детей"</h3>
+  </a>
+{% endblock content %}

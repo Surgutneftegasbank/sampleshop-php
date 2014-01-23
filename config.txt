@@ -1,0 +1,4 @@
+[settings]
+merchant = "jazzshop"
+terminal = "1071"
+password = "qwe123!@#"

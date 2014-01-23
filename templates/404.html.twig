@@ -1,0 +1,11 @@
+{% extends 'layout.html.twig' %}
+
+{# Configuration #}
+{% set title = '404 Not Found' %}
+
+{# Render#}
+{% block content %}
+	<h1>404 Not Found for &quot;{{ app.request.resourceUri }}&quot;.</h1>
+	<p>The page you are looking for could not be found. Check the address bar to ensure your URL is spelled correctly. If all else fails, you can visit our home page at the link below.</p>
+	<a href="{{ app.request.url }}/sampleshop-php">Visit the home page</a>
+{% endblock content %}

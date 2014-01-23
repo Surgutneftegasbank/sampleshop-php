@@ -1,0 +1,11 @@
+{% extends 'layout.html.twig' %}
+
+{# Configuration #}
+{% set title = '500 Internal Server Error' %}
+
+{# Render#}
+{% block content %}
+	<h1>500 Internal Server Error</h1>
+	<p>A website error has occured. The website administrator has been notified of the issue. Sorry for the temporary inconvenience.</p>
+	<a href="{{ app.request.url }}/sampleshop-php">Visit the home page</a>
+{% endblock content %}
