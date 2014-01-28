@@ -1,6 +1,12 @@
 {
     "name": "sampleshop-php",
     "description": "A simple example shop using SNGB internet acquiring.",
+    "keywords": [
+        "sngb",
+        "payment processing",
+        "api example"
+    ],
+    "homepage": "http://ecomm.sngb.ru/",
     "authors": [
         {
             "name": "Yura Zatsepin",
@@ -12,6 +18,10 @@
         "slim/slim": ">=2.3.0",
         "slim/views": "0.*",
         "slim/extras": "2.*",
-        "twig/twig": "1.*"
+        "twig/twig": "1.*",
+        "gabordemooij/redbean": "*"
+    },
+    "require-dev": {
+        "vierbergenlars/simpletest": "*"
     }
 }
