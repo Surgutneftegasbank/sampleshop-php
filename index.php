@@ -23,6 +23,9 @@ $app->configureMode('development', function () use ($app) {
   $app->config(array(
     'debug' => true,
   ));
+  SNGBEcomm::setApiKey('qwe123!@#');
+  SNGBEcomm::setMerchant('7000');
+  SNGBEcomm::setTerminalAlias('7000-alias');
 });
 
 // Prepare view
@@ -51,8 +54,8 @@ $app->get('/checkout', function () use ($app) {
   $payment_object->action = SNGBEcomm_Payment::$PURCHASE;
   $id = R::store($payment_object);
 
-  $payment = new SNGBEcomm_Payment('qwe123!@#', '7000', '7000-alias');
-  $url = $payment->create($id, 1);
+  $payment = new SNGBEcomm_Payment();
+  $url = $payment->create($id, $payment_object->amount);
   
   //Redirect user to payment page
   header('Location: ' . $url) ;
@@ -60,40 +63,42 @@ $app->get('/checkout', function () use ($app) {
 })->name('checkout');
 
 // Payment Notification handler endpoint
-$app->post('/notification', function () use ($app) {
+$app->post('/payment/notification', function () use ($app) {
   $request = $app->request;
-
-  //TODO: Fix static value
-  $merchant = '7000';
-  $psk = 'qwe123!@#';
   $trackid = $request->params("trackid");
+
+  // Получаем из бд нужную операцию платежа,
+  // если конечно у нас есть trackid
   $payment_object = R::load('payment', $trackid);
   $action = $payment_object->action;
   $amount = $payment_object->amount;
-  $udf5 = $request->params("udf5");        
-  $hash_psk = sha1( $psk );
-  $salt = $merchant . $amount . $trackid . $action . $hash_psk;
-  $hash = sha1( $salt ); 
-
-  $error = $request->params('Error');
 
   //TODO: Fix absolute path
   $rootURL = "http://ecm-client.sngb.local/sampleshop-php";
 
-  if ($error) {
-    $reply = "REDIRECT=" . $rootURL . "/error?Error=" . $error;
+  $error = $request->params('Error');
+  $result = $request->params('result');
+  $responsecode = $request->params('responsecode');
+  $hashresponse = $request->params('udf5');
+
+  $errorhandler = new SNGBEcomm_Error($error, $result, $responsecode, $hashresponse);
+  $errormessage = $errorhandler->isError($trackid, $amount, $action);
+  if ($errormessage) {
+    $reply = 'REDIRECT=' . $rootURL . '/payment/error?trackid=' . $trackid . '&errormessage=' . $errormessage;
   }
-  else 
-  {
-    //Check SNGB ecommerce server signature
-    if ($hash != $udf5) {     
-      $app->halt(403, "Операция оплаты не удалась. Причина: неправильный сервер обработки платежа.");
-    }
-    $payment_object->result = $request->params("result");
-    $payment_object->responsecode = $request->params("responsecode");
-    $payment_object->paymentid = $request->params("paymentid");
+  else {
+    $reply = 'REDIRECT=' . $rootURL . '/payment/success/' . $trackid;
+  }
+
+  $payment_object->errormessage = $errormessage;
+  $payment_object->paymentid = $request->params("paymentid");
+
+  // У нас может не быть trackid,
+  // а если его нет то изменить нужную сущность не получится
+  try {
     R::store($payment_object);
-    $reply = 'REDIRECT=' . $rootURL .'/payment/'.$trackid;
+  } catch (Exception $e) {
+    //echo $e->getMessage();
   }
 
   //TODO: Надо делать редирект с помощью JS на клиенте,
@@ -102,57 +107,19 @@ $app->post('/notification', function () use ($app) {
 });
 
 // Error payment page 
-$app->get('/error', function () use ($app) {
+$app->get('/payment/error', function () use ($app) {
   $request = $app->request;
-  $error = $request->params('Error');
-  $errorText = $request->params('ErrorText');
-  if ($error == '') {
+  $errormessage = $request->params("errormessage");
+  if ($errormessage) 
+    echo $errormessage;
+  else 
     echo "Оплата не удалась! Обратитесь в службу поддержки сайта.";
-    //$app->halt(403, "Что то пошло не так! Обратитесь в службу поддержки сайта.");
-  }
-  echo $error . "  " . $errorText;
 });
 
 // Result payment page 
-$app->get('/payment/:trackid', function ($trackid) use ($app) {
+$app->get('/payment/success/:trackid', function ($trackid) use ($app) {
   $payment_object = R::load('payment', $trackid);
-  switch ($payment_object->result)
-  {
-    case "CANCELED":
-      $outcome = "Операция оплаты отменена.";
-      break;
-    case "NOT APPROVED":
-      switch ($payment_object->responsecode)
-      {   
-        case "04": 
-          $outcome = "Ошибка. Недействительный номер карты.";
-          break;
-        case "14": 
-          $outcome = "Ошибка. Неверный номер карты.";
-          break;
-        case "33":
-        case "54": 
-          $outcome = "Ошибка. Истек срок действия карты."; 
-          break;
-        case "Q1": 
-          $outcome = "Ошибка. Неверный срок действия карты или карта просрочена."; 
-          break;            
-        case "51":
-          $outcome = "Ошибка. Недостаточно средств.";
-          break;
-        case "56":
-          $outcome = "Ошибка. Неверный номер карты.";
-          break;
-        default:
-          $outcome = "Ошибка. Обратитесь в банк, выпустивший карту.";
-      }
-      break;
-    case "CAPTURED":
-      if ($payment_object->responsecode == "00") {
-        $outcome = 'Операция проведена успешно.';      
-      }
-  }
-  echo $outcome . " Номер операции: " . $trackid . " Номер платежа: " . $payment_object->paymentid;
+  echo "Успешная оплата. Номер операции: " . $trackid . " Номер платежа: " . $payment_object->paymentid;
 });
 
 // 404 Not Found handler
