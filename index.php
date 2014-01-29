@@ -1,6 +1,15 @@
-<?php require 'vendor/autoload.php';
+<?php 
+
+/**
+ * Тестовый магазин СНГБ Электронной коммерции 
+ * (SNGBEcomm + Slim + Twig + Redbean)
+ * 
+ * @author Yura Zatsepin <yu.zatsepin@sngb.com>
+ */
+require 'vendor/autoload.php';
 
 require_once("../sngbecomm-php/lib/SNGBEcomm.php");
+
 require_once("RedBeanORM.php");
 use RedBeanORM as R;
 
@@ -16,6 +25,7 @@ $app->configureMode('production', function () use ($app) {
     'debug' => false,
   ));
   R::freeze(true);
+  //TODO: Сделать настройку для Боевого сервера Магазина
 });
 
 // Only invoked if mode is "development"
@@ -23,6 +33,21 @@ $app->configureMode('development', function () use ($app) {
   $app->config(array(
     'debug' => true,
   ));
+  // Конфигурируем Доступ к тестовому платежному серверу СНГБ
+  // Данные беруется из личного кабинета : https://ecm.sngb.ru/ECommerce/Merchant/
+  //
+  // Merchant (или Merchant ID) берем во вкладки Merchant
+  //
+  // Terminal Alias берем оттуда же. В таблице достапнух терминалов выбираем
+  // терминал с которым будем работать, и получаем информацию.
+  //
+  // Данные об ApiKey или PSK получаем на welcome page (домик в правом верхнем углу,
+  // либо первая страница после входа в личный кабинет). 
+  // Нажимаем на ссылку: 
+  // "Зарегистрировать сайт для взаимодействия интернет-магазина с сервисом электронной коммерции через протокол HTTP API." 
+  // Придумываем и вводим PSK (оставляем hash type sha-1)
+  // PSK может быть следующего вида: "qwerty12345!@#$"
+  // 
   SNGBEcomm::setApiKey('qwe123!@#');
   SNGBEcomm::setMerchant('7000');
   SNGBEcomm::setTerminalAlias('7000-alias');
@@ -39,88 +64,8 @@ $app->view->parserOptions = array(
 $app->view->getInstance()->addGlobal('app', $app);
 $app->view->parserExtensions = array(new \Slim\Views\TwigExtension());
 
-$app->get('/', function () use ($app) {
-  $parameters = array(
-    'var'    => "Variable",
-  );
-
-  $app->render('index.html.twig', $parameters);
-})->name('index');
-
-// Payment initial endpoint
-$app->get('/checkout', function () use ($app) {
-  $payment_object = R::dispense('payment');
-  $payment_object->amount = 1.0;
-  $payment_object->action = SNGBEcomm_Payment::$PURCHASE;
-  $id = R::store($payment_object);
-
-  $payment = new SNGBEcomm_Payment();
-  $url = $payment->create($id, $payment_object->amount);
-  
-  //Redirect user to payment page
-  header('Location: ' . $url) ;
-  exit();
-})->name('checkout');
-
-// Payment Notification handler endpoint
-$app->post('/payment/notification', function () use ($app) {
-  $request = $app->request;
-  $trackid = $request->params("trackid");
-
-  // Получаем из бд нужную операцию платежа,
-  // если конечно у нас есть trackid
-  $payment_object = R::load('payment', $trackid);
-  $action = $payment_object->action;
-  $amount = $payment_object->amount;
-
-  //TODO: Fix absolute path
-  $rootURL = "http://ecm-client.sngb.local/sampleshop-php";
-
-  $error = $request->params('Error');
-  $result = $request->params('result');
-  $responsecode = $request->params('responsecode');
-  $hashresponse = $request->params('udf5');
-
-  $errorhandler = new SNGBEcomm_Error($error, $result, $responsecode, $hashresponse);
-  $errormessage = $errorhandler->isError($trackid, $amount, $action);
-  if ($errormessage) {
-    $reply = 'REDIRECT=' . $rootURL . '/payment/error?trackid=' . $trackid . '&errormessage=' . $errormessage;
-  }
-  else {
-    $reply = 'REDIRECT=' . $rootURL . '/payment/success/' . $trackid;
-  }
-
-  $payment_object->errormessage = $errormessage;
-  $payment_object->paymentid = $request->params("paymentid");
-
-  // У нас может не быть trackid,
-  // а если его нет то изменить нужную сущность не получится
-  try {
-    R::store($payment_object);
-  } catch (Exception $e) {
-    //echo $e->getMessage();
-  }
-
-  //TODO: Надо делать редирект с помощью JS на клиенте,
-  // чтобы не было дерганий окна браузера
-  echo $reply;
-});
-
-// Error payment page 
-$app->get('/payment/error', function () use ($app) {
-  $request = $app->request;
-  $errormessage = $request->params("errormessage");
-  if ($errormessage) 
-    echo $errormessage;
-  else 
-    echo "Оплата не удалась! Обратитесь в службу поддержки сайта.";
-});
-
-// Result payment page 
-$app->get('/payment/success/:trackid', function ($trackid) use ($app) {
-  $payment_object = R::load('payment', $trackid);
-  echo "Успешная оплата. Номер операции: " . $trackid . " Номер платежа: " . $payment_object->paymentid;
-});
+// Routes. Url Mapping
+require 'routes.php';
 
 // 404 Not Found handler
 $app->notFound(function () use ($app) {
