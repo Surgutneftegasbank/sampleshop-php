@@ -16,7 +16,13 @@ use RedBeanORM as R;
 R::loadConfig(require_once 'database.php');
 
 $app = new \Slim\Slim(array(
-  'mode' => 'development'
+  'mode' => 'development',
+      //'log.level' => Slim\Log::ERROR,
+      'log.enabled' => true,
+      'log.writer' => new Slim\Extras\Log\DateTimeFileWriter(array(
+        'path' => 'storage/logs',
+        'name_format' => 'y-m-d'
+      ))
 ));
 
 // Only invoked if mode is "production"
@@ -63,6 +69,20 @@ $app->view->parserOptions = array(
   'autoescape' => true);
 $app->view->getInstance()->addGlobal('app', $app);
 $app->view->parserExtensions = array(new \Slim\Views\TwigExtension());
+
+
+//SET some globally available view data
+$resourceUri = $_SERVER['REQUEST_URI'];
+$rootUri = $app->request()->getRootUri();
+$assetUri = $rootUri;
+
+$app->view()->appendData(
+  array(
+    'app' => $app,
+    'rootUri' => $rootUri,
+    'assetUri' => $assetUri,
+    'resourceUri' => $resourceUri
+));
 
 // Routes. Url Mapping
 require 'routes.php';

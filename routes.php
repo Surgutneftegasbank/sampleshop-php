@@ -17,12 +17,17 @@ $app->get('/', function () use ($app) {
 // в личном кабинете Merchat'а.
 // Регистрируются URLs там же где регистрируется PSK/ApiKey (см. index.php)
 $app->get('/checkout', function () use ($app) {
+  $request = $app->request;
+  if ($request->getHost() != 'ecm-client.sngb.local')
+    $app->halt(403, 'You shall not pass!');
+
   $payment_object = R::dispense('payment');
 
+  $amount = $request->params("price");
   // Цена в бд хранится в INTEGER.(или в другом числовом формате)
   // 100.00 RUB или 100.00$, хранится как 10000.
   // Используем фиксированную точку с двумя знаками после запятой
-  $payment_object->amount = 10000; 
+  $payment_object->amount = $amount; 
   $payment_object->action = SNGBEcomm_Payment::$PURCHASE;
   $id = R::store($payment_object);
 
@@ -40,6 +45,11 @@ $app->get('/checkout', function () use ($app) {
 // Регистрируется в личном кабинете (см. выше)
 $app->post('/payment/notification', function () use ($app) {
   $request = $app->request;
+
+  // Проверяем сервер СНГБ
+  //if ($request->getIP() != '191.209.17.98')
+    //$app->halt(403, 'You shall not pass!');
+
   $trackid = $request->params("trackid");
 
   // Получаем из бд нужную операцию платежа,
@@ -58,6 +68,9 @@ $app->post('/payment/notification', function () use ($app) {
 
   $errorhandler = new SNGBEcomm_Error($error, $result, $responsecode, $hashresponse);
   $errormessage = $errorhandler->isError($trackid, $amount, $action);
+
+  $log = $app->getLog();
+  $log->info("REQUEST BODY: " . $request->getBody());
   if ($errormessage) {
     $reply = 'REDIRECT=' . $rootURL . '/payment/error?trackid=' . $trackid . '&errormessage=' .urlencode($errormessage);
   }
@@ -101,7 +114,15 @@ $app->get('/payment/error', function () use ($app) {
 // страницу Notification
 $app->get('/payment/success/:trackid', function ($trackid) use ($app) {
   $payment_object = R::load('payment', $trackid);
-  echo "Успешная оплата. Номер операции: " . $trackid . " Номер платежа: " . $payment_object->paymentid;
+
+  $parameters = array(
+    'trackid' => $trackid,
+    'payment_object' => $payment_object,
+    'paymentid' => $payment_object->paymentid
+  );
+
+  // Render view
+  $app->render('success.html.twig', $parameters);
 });
 
 

@@ -28,7 +28,7 @@ body {
   float: right;
 }
 
-.error-block {
+.error-block, .virtual-good {
   text-align: center;
   padding: 100px 0 118px 0;
 }

@@ -1,9 +1,12 @@
 {% extends 'layout.html.twig' %}
 
 {% block content %}
-  Товар "Игрушки для детей"
-  Цена 1000р.
-  <a href="{{ app.urlFor('checkout') }}">
-    <h3>Купить "игрушку для детей"</h3>
-  </a>
+  <div class="virtual-good">
+    <h3>Товар "Лучший подарок" Цена 100 руб</h3>
+    <p>
+      <a href="{{ app.urlFor('checkout') }}?price=10000" class="btn btn-success" >
+      Купить "Лучший подарок за 100 руб"
+      </a>
+    </p>
+  </div>
 {% endblock content %}

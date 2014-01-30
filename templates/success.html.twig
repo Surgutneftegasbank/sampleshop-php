@@ -1,0 +1,15 @@
+{% extends 'layout.html.twig' %}
+
+{% block content %}
+  <div class="virtual-good">
+    <h3>
+      <p>Успешно приобретен Товар "Лучший подарок".</p>
+      <p>Номер операции: {{ trackid }} Номер платежа: {{ paymentid }}</p>
+    </h3>
+    <p>
+      <a href="{{ app.urlFor('checkout') }}?price=10000" class="btn btn-success" >
+      Еще один "Лучший подарок за 100 руб"
+      </a>
+    </p>
+  </div>
+{% endblock content %}
