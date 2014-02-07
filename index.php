@@ -54,6 +54,7 @@ $app->configureMode('development', function () use ($app) {
   // Придумываем и вводим PSK (оставляем hash type sha-1)
   // PSK может быть следующего вида: "qwerty12345!@#$"
   // 
+  Sngbecomm::setLiveMode(false);
   SNGBEcomm::setApiKey('qwe123!@#');
   SNGBEcomm::setMerchant('7000');
   SNGBEcomm::setTerminalAlias('7000-alias');
