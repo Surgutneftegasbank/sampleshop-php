@@ -55,7 +55,7 @@ $app->configureMode('development', function () use ($app) {
   // PSK может быть следующего вида: "qwerty12345!@#$"
   // 
   Sngbecomm::setLiveMode(false);
-  SNGBEcomm::setApiKey('qwe123!@#');
+  SNGBEcomm::setApiKey('64fdfab72758601fbff4dd0ef54fa6e6d96338f5');
   SNGBEcomm::setMerchant('7000');
   SNGBEcomm::setTerminalAlias('7000-alias');
 });

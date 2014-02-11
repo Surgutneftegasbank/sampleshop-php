@@ -32,7 +32,13 @@ $app->get('/checkout', function () use ($app) {
   $id = R::store($payment_object);
 
   $payment = new SNGBEcomm_Payment();
-  $url = $payment->create($id, $payment_object->amount);
+  $additional_fields = array(
+    // Номер заказа
+    "udf1" => $id,
+    // Наш номер тех. поддержки
+    "udf2" => "8 800 xxx xxx 88"
+  );
+  $url = $payment->create($id, $payment_object->amount, $additional_fields);
   
   //Redirect user to payment page
   header('Location: ' . $url) ;
