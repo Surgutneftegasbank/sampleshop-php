@@ -1,8 +1,11 @@
 CREATE TABLE IF NOT EXISTS `payment` (
   `id` INTEGER PRIMARY KEY NOT NULL ,
   `paymentid` INTEGER,
-  `trackid` INTEGER,
+  `pan` INTEGER,
+  `panhash` INTEGER,
+  `tranid` INTEGER,
   `amount` INTEGER NOT NULL,
   `action` INTEGER NOT NULL,
   `errormessage` TEXT
+  `result` TEXT
   );

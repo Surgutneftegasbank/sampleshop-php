@@ -18,24 +18,12 @@
 		{% block head_scripts %}{% endblock %}
 	</head>
 	<body>
-      <div class="header">
-        <h1><a href="/"><img src="{{ assetUri }}/img/sngb.png" alt="ЗАО «СНГБ»" /></a></h1>
-
-        <!--<div class="navigation">-->
-          <!--<div class="signin">-->
-            <!--<a id='signin' href="https://manage.ecomm.sngb.ru/login"><span>Sign In</span></a>-->
-          <!--</div>-->
-          <!--<ul class="global">-->
-            <!--<li><a href="/docs">Documentation</a></li>-->
-            <!--<li><a href="mailto:support@ecomm.sngb.ru?subject=Support">Help &amp; Support</a></li>-->
-          <!--</ul>-->
-        <!--</div>-->
-
-      </div> <!-- END HEADER -->
-
-      </hr>
-
-		{% block content %}{% endblock %}
-		{% block body_scripts %}{% endblock %}
+      <div class='container'>
+        <div class="header">
+          <h1><a href="/"><img src="{{ assetUri }}/img/sngb.png" alt="ЗАО «СНГБ»" /></a></h1>
+        </div>
+      </div>
+	  {% block content %}{% endblock %}
+	  {% block body_scripts %}{% endblock %}
 	</body>
 </html>

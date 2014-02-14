@@ -45,6 +45,43 @@ $app->get('/checkout', function () use ($app) {
   exit();
 })->name('checkout');
 
+$app->get('/payments', function () use ($app) {
+  $payments = R::findAll('payment');
+  //foreach ($payments as $key=>$value) {
+    //echo $key . ': ' . $value['id'] . ' '. $value['paymentid'] . ' '. $value['trackid'] . '<br>';
+  //}
+  $parameters = array(
+    'payments' => $payments
+  );
+
+  // Render view
+  $app->render('payments.html.twig', $parameters);
+})->name('payments');
+
+$app->get('/payment/manage/credit', function () use ($app) {
+  $log = $app->getLog();
+  $request = $app->request;
+  if ($request->getHost() != 'ecm-client.sngb.local')
+    $app->halt(403, 'You shall not pass!');
+
+  $amount = SNGBEcomm_Payment::convertMoneyToString($request->params("amount"));
+  $trackid = $request->params("trackid");
+  $tranid = $request->params("tranid");
+  $paymentid = $request->params("paymentid");
+  $action = SNGBEcomm_Payment::$CREDIT;
+
+  $payment = new SNGBEcomm_Payment();
+  $result = $payment->manage($amount, $trackid, $tranid, $paymentid, $action);
+  $log->info("Result manage tran:" . $result);
+  echo $result;
+});
+
+$app->get('/payment/tran', function () use ($app) {
+  $request = $app->request;
+  $log = $app->getLog();
+  $log->info("REQUEST BODY: " . $request->getBody());
+});
+
 // URL обратного ответа о состоянии  операции по платежу
 // 
 // Конечная точка ответа СНГБ сервера электронной коммерции
@@ -85,7 +122,12 @@ $app->post('/payment/notification', function () use ($app) {
   }
 
   $payment_object->errormessage = $errormessage;
+
   $payment_object->paymentid = $request->params("paymentid");
+  $payment_object->pan = $request->params("pan");
+  $payment_object->panhash = $request->params("panhash");
+  $payment_object->tranid = $request->params("tranid");
+  $payment_object->result = $request->params("result");
 
   // У нас может не быть trackid,
   // а если его нет то изменить нужную сущность не получится
