@@ -51,8 +51,8 @@ $app->configureMode('development', function () use ($app) {
   // либо первая страница после входа в личный кабинет). 
   // Нажимаем на ссылку: 
   // "Зарегистрировать сайт для взаимодействия интернет-магазина с сервисом электронной коммерции через протокол HTTP API." 
-  // Придумываем и вводим PSK (оставляем hash type sha-1)
-  // PSK может быть следующего вида: "qwerty12345!@#$"
+  // нажимаем make PSK
+  // PSK может быть следующего вида: "64fdfab72758601fbff4dd0ef54fa6e6d96338f5"
   // 
   Sngbecomm::setLiveMode(false);
   SNGBEcomm::setApiKey('64fdfab72758601fbff4dd0ef54fa6e6d96338f5');
