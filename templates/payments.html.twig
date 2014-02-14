@@ -1,0 +1,59 @@
+{% extends 'layout.html.twig' %}
+
+{% block content %}
+<div class="clearfix"></div>
+<div class="container">
+  <div class="row">
+    <div class="panel panel-primary">
+      <!-- Default panel contents -->
+      <div class="panel-heading">Платежи</div>
+      <div class="panel-body">
+      <p></p>
+      <table class="table ">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ID Платежа</th>
+            <th>ID Транзакции</th>
+            <th>Сумма</th>
+            <th>Результат</th>
+            <th>Номер карты</th>
+            <th></th>
+            <th>Обновить</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment in payments %}
+          <tr {% if payment.result in '' %}class="warning"{% endif %}>
+            <td>{{ payment.id }}</td>
+            <td>{{ payment.paymentid }}</td>
+            <td>{{ payment.tranid }}</td>
+            <td>{{ payment.amount }}</td>
+            <td>
+              {% if payment.result in 'CAPTURED' %}
+              <p class='label label-success'>
+               Оплачен
+              </p>
+              {% else %}
+              <p class='label label-danger'>
+               Не удача
+              </p>
+              {% endif %}
+            </td>
+            <td>{{ payment.pan }}</td>
+            <td> 
+              <button type="button" class="btn btn-default">вернуть платеж</button>
+            </td>
+            <td> 
+              <button type="button" class="btn btn-default btn-large">
+                <span class="glyphicon glyphicon-refresh"></span>
+              </button>
+            </td>
+          </tr>
+         {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock content %}
